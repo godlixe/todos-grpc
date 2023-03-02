@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  web:
+    image: golang:1.17.0
+    build: .
+    container_name: todos-server
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/usr/src/app
+    working_dir: /usr/src/app
+    command: >
+          go run -mod=vendor main.go -b 0.0.0.0
+    restart: unless-stopped
+
+  db:
+    image: postgres:alpine
+    container_name: todos-db
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./schema:/docker-entrypoint-initdb.d
+      - postgres-db:/var/lib/postgresql/data
+      
+volumes:
+  postgres-db:

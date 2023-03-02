@@ -1,0 +1,2 @@
+[build]
+cmd = "go run -mod=vendor server.go -b 0.0.0.0"
