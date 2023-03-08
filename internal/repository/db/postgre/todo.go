@@ -2,11 +2,11 @@ package postgre
 
 import (
 	"context"
-	"fmt"
 	"todos-grpc/internal/entity"
 	"todos-grpc/pkg/database"
 
 	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4"
 )
 
 // Todo repository
@@ -30,14 +30,14 @@ func (t *Todo) GetTodoByID(ctx context.Context, id int64) (*entity.Todo, error) 
 		return nil, err
 	}
 
-	query := fmt.Sprint(`
+	query := `
 		SELECT
 			*
 		FROM
 			todos
 		WHERE
 			id = ($1)
-	`)
+	`
 
 	var todo entity.Todo
 	var todoTime pgtype.Timestamptz
@@ -60,104 +60,119 @@ func (t *Todo) GetTodoByID(ctx context.Context, id int64) (*entity.Todo, error) 
 	return &todo, err
 }
 
-func (t *Todo) GetAllTodos(ctx context.Context) ([]entity.Todo, error) {
-	return nil, nil
+func (t *Todo) GetAllTodos(ctx context.Context) ([]*entity.Todo, error) {
+	db, err := t.postgreClient.GetConn(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	query := `
+		SELECT
+			*
+		FROM
+			todos
+	`
+
+	var todos []*entity.Todo
+
+	var rows pgx.Rows
+
+	rows, err = db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var todo entity.Todo
+		var todoTime pgtype.Timestamptz
+		if err := rows.Scan(
+			&todo.ID,
+			&todo.Title,
+			&todo.Description,
+			&todo.IsDone,
+			&todo.UserID,
+			&todoTime,
+		); err != nil {
+			return nil, err
+		}
+
+		todo.TimeStamp = todoTime.Time
+
+		todos = append(todos, &todo)
+	}
+
+	return todos, err
 }
 
-// 	db, err := t.postgreClient.GetConn(ctx)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func (t *Todo) CreateTodo(ctx context.Context, todo *entity.Todo) (*entity.Todo, error) {
+	db, err := t.postgreClient.GetConn(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-// 	query := fmt.Sprint(`
-// 		SELECT
-// 			*
-// 		FROM
-// 			todos
-// 		WHERE
-// 			id = ($1)
-// 	`)
+	query := `
+		INSERT INTO todos (
+			title,
+			description,
+			is_done,
+			user_id,
+			time_stamp
+		)
+		VALUES (
+			$1,
+			$2,
+			$3,
+			$4,
+			CURRENT_TIMESTAMP
+		)
+	`
 
-// 	var todo entity.Todo
-// 	err = db.QueryRow(ctx, query, id).Scan(
-// 		&todo.ID,
-// 		&todo.Title,
-// 		&todo.Description,
-// 		&todo.IsDone,
-// 		&todo.UserID,
-// 		&todo.TimeStamp,
-// 	)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	_, err = db.Exec(
+		context.Background(),
+		query,
+		todo.Title,
+		todo.Description,
+		todo.IsDone,
+		todo.UserID,
+	)
+	if err != nil {
+		return nil, err
+	}
 
-// 	return &todo, err
-// }
-
-func (t *Todo) CreateTodo(ctx context.Context, todo *entity.Todo) error {
-	return nil
+	return todo, nil
 }
 
-// 	db, err := t.postgreClient.GetConn(ctx)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func (t *Todo) UpdateTodo(ctx context.Context, todo *entity.Todo) (*entity.Todo, error) {
+	db, err := t.postgreClient.GetConn(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-// 	query := fmt.Sprint(`
-// 		SELECT
-// 			*
-// 		FROM
-// 			todos
-// 		WHERE
-// 			id = ($1)
-// 	`)
+	query := `
+		UPDATE todos 
+		SET
+			title = $2,
+			description = $3,
+			is_done = $4,
+			user_id = $5,
+			time_stamp = CURRENT_TIMESTAMP
+		WHERE
+			id = $1
+	`
 
-// 	var todo entity.Todo
-// 	err = db.QueryRow(ctx, query, id).Scan(
-// 		&todo.ID,
-// 		&todo.Title,
-// 		&todo.Description,
-// 		&todo.IsDone,
-// 		&todo.UserID,
-// 		&todo.TimeStamp,
-// 	)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	_, err = db.Exec(
+		context.Background(),
+		query,
+		todo.ID,
+		todo.Title,
+		todo.Description,
+		todo.IsDone,
+		todo.UserID,
+	)
+	if err != nil {
+		return nil, err
+	}
 
-// 	return &todo, err
-// }
-
-func (t *Todo) UpdateTodo(ctx context.Context, todo *entity.Todo) error {
-	return nil
+	return todo, nil
 }
-
-// 	db, err := t.postgreClient.GetConn(ctx)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	query := fmt.Sprint(`
-// 		SELECT
-// 			*
-// 		FROM
-// 			todos
-// 		WHERE
-// 			id = ($1)
-// 	`)
-
-// 	var todo entity.Todo
-// 	err = db.QueryRow(ctx, query, id).Scan(
-// 		&todo.ID,
-// 		&todo.Title,
-// 		&todo.Description,
-// 		&todo.IsDone,
-// 		&todo.UserID,
-// 		&todo.TimeStamp,
-// 	)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return &todo, err
-// }

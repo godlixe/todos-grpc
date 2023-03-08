@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"todos-grpc/internal/repository/cache/redis"
 	"todos-grpc/internal/repository/db/postgre"
 	"todos-grpc/internal/service"
 	"todos-grpc/pkg/proto"
@@ -23,8 +24,14 @@ func New() (*System, error) {
 		return nil, err
 	}
 
+	redisCache, err := redis.New()
+	if err != nil {
+		return nil, err
+	}
+
 	domain := service.New(
 		postgreDB,
+		redisCache,
 	)
 
 	res := &System{

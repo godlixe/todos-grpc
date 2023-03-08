@@ -13,6 +13,17 @@ services:
           go run -mod=vendor main.go -b 0.0.0.0
     restart: unless-stopped
 
+  cache:
+    container_name: "redis"
+    image: "bitnami/redis:latest"
+    ports:
+      - "6379:6379"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    # command: redis-server --bind redis --requirepass ${REDIS_PASS} --maxmemory 256mb --maxmemory-policy allkeys-lru --appendonly yes
+    volumes:
+      - cache:/bitnami/redis/data
+
   db:
     image: postgres:alpine
     container_name: todos-db
@@ -27,4 +38,6 @@ services:
       - postgres-db:/var/lib/postgresql/data
       
 volumes:
+  cache:
+    driver: local
   postgres-db:
