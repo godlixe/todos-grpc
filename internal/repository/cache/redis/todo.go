@@ -30,7 +30,7 @@ func (r *Todo) SetTodo(ctx context.Context, todo *entity.Todo) error {
 		return err
 	}
 
-	key := fmt.Sprint(todo.ID)
+	key := fmt.Sprintf("todo:%v", todo.ID)
 	err = r.client.Set(ctx, key, string(res))
 	if err != nil {
 		return err
@@ -41,7 +41,8 @@ func (r *Todo) SetTodo(ctx context.Context, todo *entity.Todo) error {
 
 func (r *Todo) GetTodo(ctx context.Context, id int64) (*entity.Todo, error) {
 
-	res, err := r.client.Get(ctx, fmt.Sprint(id))
+	key := fmt.Sprintf("todo:%v", id)
+	res, err := r.client.Get(ctx, key)
 	if err != nil {
 		return nil, err
 	}

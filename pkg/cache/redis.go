@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -14,7 +13,7 @@ type RedisClient struct {
 
 func NewRedisClient() (*RedisClient, error) {
 	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     "cache:6379",
 		Password: "root",
 		DB:       0,
 	})
@@ -31,7 +30,7 @@ func (r *RedisClient) Get(ctx context.Context, key string) ([]byte, error) {
 	if err != nil {
 		return nil, nil
 	}
-	fmt.Println("getting from cache")
+
 	return []byte(res), nil
 }
 
@@ -40,6 +39,6 @@ func (r *RedisClient) Set(ctx context.Context, key string, value string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("setting cache", key, value)
+
 	return nil
 }

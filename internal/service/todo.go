@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"todos-grpc/internal"
 	"todos-grpc/internal/entity"
 )
@@ -34,7 +35,10 @@ func (t *Todo) GetTodoByID(ctx context.Context, id int64) (*entity.Todo, error) 
 		return nil, err
 	}
 
-	_ = t.cache.SetTodo(ctx, todo)
+	x := t.cache.SetTodo(ctx, todo)
+	if x != nil {
+		fmt.Println(x)
+	}
 
 	return todo, nil
 }

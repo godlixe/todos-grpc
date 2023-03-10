@@ -15,14 +15,14 @@ services:
 
   cache:
     container_name: "redis"
-    image: "bitnami/redis:latest"
+    image: "redis:alpine"
     ports:
       - "6379:6379"
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-    # command: redis-server --bind redis --requirepass ${REDIS_PASS} --maxmemory 256mb --maxmemory-policy allkeys-lru --appendonly yes
+    # environment:
+    #   - ALLOW_EMPTY_PASSWORD=yes
+    command: redis-server --bind redis --requirepass ${REDIS_PASS} --maxmemory 256mb --maxmemory-policy allkeys-lru --appendonly yes
     volumes:
-      - cache:/bitnami/redis/data
+      - cache:/data
 
   db:
     image: postgres:alpine
