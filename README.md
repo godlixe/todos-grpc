@@ -7,8 +7,12 @@ This app is using docker, make sure you have docker and docker-compose installed
 - PostgreSQL database
 - Redis caching
 
+Set the env files too (will be updated soon).
+
 Before running, make sure the port `:8080` is not in use.
 
 Run `docker-compose up` to run the service.
 
 The proto files are located in `/pkg/proto` directory.
+
+
